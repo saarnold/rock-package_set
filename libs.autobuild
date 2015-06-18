@@ -1,7 +1,54 @@
 # IMPORTANT: new packages must be added at the top of this file
 
 cmake_package 'gui/pose3d_editor'
+
 ruby_package 'control/ruby_sdformat'
+cmake_package "drivers/glfw" do |pkg|
+    pkg.define "BUILD_SHARED_LIBS", "ON"
+end
+
+#Needed for kinect, the os packages does not (yet) work 06.15
+Autoproj.add_osdeps_overrides 'glfw', :package => 'drivers/glfw'
+remove_from_default 'drivers/glfw'
+
+import_package "drivers/glew"  do |pkg|
+    pkg.depends_on "glfw"
+    pkg.depends_on "libturbojpeg"
+    pkg.post_install do
+        Autoproj.env_set_path "GLEW_DEST", Autobuild.prefix
+        pkg.in_dir(pkg.srcdir) do
+            Autobuild::Subprocess.run(pkg, 'make extensions', Autobuild.tool(:make), 'extensions')
+            Autobuild::Subprocess.run(pkg, 'make', Autobuild.tool(:make))
+            Autobuild::Subprocess.run(pkg, 'make install', Autobuild.tool(:make), 'install.all')
+        end
+    end
+end
+#Needed for kinect, the os packages does not (yet) work 06.15
+Autoproj.add_osdeps_overrides 'glew', :package => 'drivers/glew'
+remove_from_default 'drivers/glew'
+
+cmake_package "drivers/freenect2" do |pkg|
+    pkg.depends_on "glew"
+    #It needs a patched version of libusb
+    pkg.depends_on "drivers/libusb"
+    pkg.importdir = pkg.name
+    pkg.define "USE_DEPS_EXTERNAL", "ON"
+    pkg.define "BUILD_STATIC", "OFF"
+    pkg.srcdir = File.join(pkg.srcdir,"examples","protonect")
+end
+
+#Needed for kinect, the os packages does not (yet) work 06.15 (see patch in this package set)
+import_package 'drivers/libusb' do |pkg|
+    pkg.depends_on "libudev"
+    pkg.post_install do
+        pkg.in_dir(pkg.srcdir) do
+            Autobuild::Subprocess.run(pkg,"boostrap", "./bootstrap.sh")
+            Autobuild::Subprocess.run(pkg,"configure", "./configure", "--prefix=#{Autobuild.prefix}")
+            Autobuild::Subprocess.run(pkg,"make", Autobuild.tool(:make))
+            Autobuild::Subprocess.run(pkg,"make install", Autobuild.tool(:make), "install")
+        end
+    end
+end
 
 #################################################################################"
 #################################################################################"

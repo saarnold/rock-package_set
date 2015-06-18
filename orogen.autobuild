@@ -3,6 +3,7 @@
 
 
     in_flavor 'master' do
+        orogen_package 'drivers/orogen/kinect2'
         orogen_package 'multiagent/orogen/fipa_services'
         orogen_package 'slam/orogen/gmapping'
         orogen_package 'perception/orogen/projection'
