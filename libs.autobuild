@@ -173,8 +173,12 @@ end
 
 in_flavor 'master' do
     cmake_package 'multiagent/fipa_services'
-    #Does not compile and maintainer does not respond
-    #cmake_package 'slam/ceres_solver'
+    #Can be linked to other projects by using DEPS_CMAKE Ceres
+    cmake_package 'slam/ceres_solver' do |pkg|
+        pkg.define "BUILD_SHARED_LIBS", "ON"
+        pkg.define "EXPORT_BUILD_DIR", "ON"
+        pkg.define "EIGENSPARSE", "ON"
+    end
 
     bundle_package 'bundles/rock_auv'
     ruby_package 'tools/rbind' do |pkg|
